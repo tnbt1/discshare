@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiscShare - Discord経由の安全なファイル共有</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, rgba(0, 113, 227, 0.05), rgba(90, 200, 250, 0.05));
+            border-radius: var(--radius);
+            margin-bottom: 48px;
+        }
+        
+        .hero-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+            background: linear-gradient(135deg, #007AFF, #5AC8FA);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 122, 255, 0.3);
+        }
+        
+        .hero-title {
+            font-size: 48px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+        
+        .hero-subtitle {
+            font-size: 20px;
+            color: var(--secondary-color);
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            margin: 48px 0;
+        }
+        
+        .feature-card {
+            text-align: center;
+            padding: 32px;
+            background: var(--surface);
+            border-radius: var(--radius-small);
+            transition: transform 0.2s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #007AFF, #5AC8FA);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .feature-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+        
+        .feature-description {
+            font-size: 15px;
+            color: var(--secondary-color);
+            line-height: 1.4;
+        }
+        
+        .how-to-section {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 48px;
+            margin: 48px 0;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--primary-color);
+        }
+        
+        .steps {
+            display: grid;
+            gap: 24px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .step-number {
+            min-width: 32px;
+            height: 32px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--primary-color);
+        }
+        
+        .step-description {
+            color: var(--secondary-color);
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .cta-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+        
+        .cta-description {
+            font-size: 18px;
+            color: var(--secondary-color);
+            margin-bottom: 32px;
+        }
+        
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 36px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .how-to-section {
+                padding: 32px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">💾</span>
+                <span class="logo-text">DiscShare</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">ホーム</a>
+                <a href="#how-to" class="nav-link">使い方</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container" style="max-width: 1000px;">
+            <div class="hero-section">
+                <div class="hero-icon">💾</div>
+                <h1 class="hero-title">DiscShare</h1>
+                <p class="hero-subtitle">
+                    Discord Botを使って、簡単・安全に<br>
+                    大容量ファイルを共有
+                </p>
+                <a href="#how-to" class="btn btn-large">使い方を見る</a>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3 class="feature-title">最大5GBまで転送</h3>
+                    <p class="feature-description">動画や大量の画像も一度に共有可能</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3 class="feature-title">3日間有効</h3>
+                    <p class="feature-description">生成されたURLは72時間アクセス可能</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">ウイルススキャン</h3>
+                    <p class="feature-description">アップロード時に自動でセキュリティチェック</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🗑️</div>
+                    <h3 class="feature-title">自動削除</h3>
+                    <p class="feature-description">期限後はファイルを自動的に削除</p>
+                </div>
+            </div>
+
+            <div class="how-to-section" id="how-to">
+                <h2 class="section-title">使い方</h2>
+                
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Discord Botを招待</div>
+                            <div class="step-description">DiscShare Botをあなたのサーバーに招待します</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">URLを生成</div>
+                            <div class="step-description">Discordで「!upload」コマンドを実行してアップロードURLを生成</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">ファイルをアップロード</div>
+                            <div class="step-description">生成されたURLにアクセスし、ファイルを選択またはドラッグ＆ドロップ</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">URLを共有</div>
+                            <div class="step-description">ダウンロードURLを相手に送信して完了</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <h2 class="cta-title">今すぐ始めよう</h2>
+                <p class="cta-description">
+                    Discord Botを追加して、安全なファイル共有を始めましょう
+                </p>
+                <button class="btn btn-large" onclick="alert('Discord Bot招待リンクをDiscordサーバー管理者にお問い合わせください')">
+                    Botを招待する
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>DiscShare</h4>
+                <p>Discord経由の安全なファイル共有</p>
+            </div>
+            <div class="footer-section">
+                <div class="footer-section-inner">
+                    <h4>機能</h4>
+                    <ul>
+                        <li><a href="#">最大5GBまで転送</a></li>
+                        <li><a href="#">3日間有効</a></li>
+                        <li><a href="#">ウイルススキャン</a></li>
+                        <li><a href="#">自動削除</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 tnbt. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

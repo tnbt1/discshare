@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiscShare - ファイル転送</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .scan-progress {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: background 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            color: var(--secondary-color);
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: var(--radius-small);
+            padding: 16px;
+            color: #856404;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">💾</span>
+                <span class="logo-text">DiscShare</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">ホーム</a>
+                <a href="#" class="nav-link">使い方</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1>ファイル転送</h1>
+            <p class="subtitle">シンプル、安全、高速</p>
+            
+            {% if token %}
+            <div class="info">
+                <div class="info-item">
+                    <span class="info-icon">🛡️</span>
+                    <span>ウイルススキャン対応</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📦</span>
+                    <span>最大ファイルサイズ: 5GB</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">⏱</span>
+                    <span>有効期限: {{ expires_at }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">✓</span>
+                    <span>対応形式: PDF, DOCX, XLSX, ZIP, JPG, PNG, MP4, AVI, MOV, MKV, WEBM, TXT, CSV, JSON, XML</span>
+                </div>
+            </div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">↑</div>
+                <div class="upload-text">ファイルを選択</div>
+                <div class="upload-subtext">またはここにドラッグ＆ドロップ</div>
+                <input type="file" id="fileInput" accept=".pdf,.docx,.xlsx,.zip,.jpg,.jpeg,.png,.mp4,.avi,.mov,.mkv,.webm,.txt,.csv,.json,.xml" style="display: none;">
+            </div>
+            
+            <div id="selectedFile"></div>
+            
+            <div style="text-align: center;">
+                <button class="btn" id="uploadBtn" disabled>アップロード</button>
+            </div>
+            
+            <div class="progress" id="progressContainer" style="display: none;">
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+            
+            <div id="message"></div>
+            
+            <script>
+                const token = "{{ token }}";
+            </script>
+            <script src="/static/upload.js"></script>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0;">
+                <p style="color: var(--secondary-color);">
+                    有効なアップロードURLではありません<br>
+                    Discord Botから新しいURLを生成してください
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>DiscShare</h4>
+                <p>Discord経由の安全なファイル共有</p>
+            </div>
+            <div class="footer-section">
+                <div class="footer-section-inner">
+                    <h4>機能</h4>
+                    <ul>
+                        <li><a href="#">最大5GBまで転送</a></li>
+                        <li><a href="#">3日間有効</a></li>
+                        <li><a href="#">ウイルススキャン</a></li>
+                        <li><a href="#">自動削除</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 tnbt. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

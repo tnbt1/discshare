@@ -1,0 +1,85 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: file-share-app
+    ports:
+      - "8000:8000"
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - REQUIRED_ROLE=${REQUIRED_ROLE}
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY}
+      - SERVICE_URL=${SERVICE_URL}
+      - API_PORT=8000
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
+      - URL_EXPIRY_DAYS=${URL_EXPIRY_DAYS}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+      - CLAMAV_TIMEOUT=${CLAMAV_TIMEOUT:-300}
+      - ALLOW_PENDING_DOWNLOAD=${ALLOW_PENDING_DOWNLOAD:-false}
+      - SCAN_LOG_DB_PATH=${SCAN_LOG_DB_PATH:-db/scan_logs.db}
+      - SCAN_LOG_RETENTION_DAYS=${SCAN_LOG_RETENTION_DAYS:-365}
+    depends_on:
+      - redis
+      - clamav
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+      - ./static:/app/static
+      - .:/app
+      - ./templates:/app/templates
+      - ./db:/app/db
+    networks:
+      - file-share-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: file-share-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - file-share-network
+
+  clamav:
+    image: clamav/clamav:stable
+    container_name: file-share-clamav
+    ports:
+      - "3310:3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+      - clamav_config:/etc/clamav
+      - ./clamd.conf:/etc/clamav/clamd.conf
+    environment:
+      - CLAMAV_NO_FRESHCLAMD=false
+      - CLAMAV_NO_CLAMD=false
+      - FRESHCLAM_CHECKS=24
+    restart: unless-stopped
+    networks:
+      - file-share-network
+    healthcheck:
+      test: ["CMD", "clamdscan", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+
+networks:
+  file-share-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
+  clamav_data:
+    driver: local
+  clamav_config:
+    driver: local

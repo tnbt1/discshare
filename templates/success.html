@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アップロード完了</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="success-container">
+            <h1>✅ アップロード完了！</h1>
+            <p>ファイルが正常にアップロードされました。</p>
+            
+            <div class="success-info">
+                <p><strong>ファイル名:</strong> {{ filename }}</p>
+                <p><strong>ファイルサイズ:</strong> {{ file_size }}</p>
+                <p><strong>ダウンロードURL:</strong></p>
+                <input type="text" class="url-input" value="{{ download_url }}" readonly>
+                <button class="btn" onclick="copyUrl()">URLをコピー</button>
+            </div>
+            
+            <a href="/upload/{{ token }}" class="btn">別のファイルをアップロード</a>
+        </div>
+    </div>
+    
+    <script>
+        function copyUrl() {
+            const input = document.querySelector('.url-input');
+            input.select();
+            document.execCommand('copy');
+            alert('URLをコピーしました！');
+        }
+    </script>
+</body>
+</html>
