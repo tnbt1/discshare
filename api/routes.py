@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
 from typing import Dict, Any
-import pytz
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -67,7 +66,7 @@ async def create_session(data: dict):
         return {"token": token, "expires_at": session_data["expires_at"]}
     except Exception as e:
         logger.error(f"Error creating session: {e}")
-        raise HTTPException(500, "セッション作成に失敗しました")
+        raise HTTPException(500, "Failed to create session")
 
 @router.get("/upload/{token}")
 async def upload_page(token: str, request: Request):
@@ -77,7 +76,7 @@ async def upload_page(token: str, request: Request):
     if not session:
         return templates.TemplateResponse("error.html", {
             "request": request,
-            "error": "セッションが見つかりません"
+            "error": "Session not found"
         })
     
     return templates.TemplateResponse("upload.html", {
@@ -106,21 +105,21 @@ async def upload_file(token: str, file: UploadFile = File(...)):
         redis_db, minio, scan_service = get_services()
         
         if minio is None:
-            raise HTTPException(503, "ストレージサービスが利用できません")
+            raise HTTPException(503, "Storage service is unavailable")
         
         session = await redis_db.get_session(token)
         if not session:
-            raise HTTPException(404, "無効なセッションです")
+            raise HTTPException(404, "Invalid session")
         
         contents = await file.read()
         file_size = len(contents)
         
         if file_size > Config.MAX_FILE_SIZE:
-            raise HTTPException(413, f"ファイルサイズが{Config.MAX_FILE_SIZE // (1024**3)}GBを超えています")
+            raise HTTPException(413, f"File size exceeds {Config.MAX_FILE_SIZE // (1024**3)}GB limit")
         
         file_ext = Path(file.filename).suffix.lower()
         if file_ext not in Config.ALLOWED_EXTENSIONS:
-            raise HTTPException(415, f"許可されていないファイル形式: {file_ext}")
+            raise HTTPException(415, f"File type not allowed: {file_ext}")
         
         file_id = str(uuid.uuid4())
         
@@ -177,10 +176,10 @@ async def upload_file(token: str, file: UploadFile = File(...)):
         
         success = await minio.upload_file(file, file_path)
         if not success:
-            raise HTTPException(500, "ファイルの保存に失敗しました")
-        
-        jst = pytz.timezone('Asia/Tokyo')
-        upload_time_jst = datetime.now(jst)
+            raise HTTPException(500, "Failed to save file")
+
+        configured_tz = Config.get_timezone()
+        upload_time_local = datetime.now(configured_tz)
         
         file_info_data = {
             "original_name": file.filename,
@@ -188,7 +187,7 @@ async def upload_file(token: str, file: UploadFile = File(...)):
             "size": file_size,
             "mime_type": file.content_type,
             "uploaded_at": datetime.utcnow().isoformat(),
-            "uploaded_at_jst": upload_time_jst.strftime('%Y-%m-%d %H:%M:%S'),
+            "uploaded_at_local": upload_time_local.strftime('%Y-%m-%d %H:%M:%S'),
             "virus_scan": scan_result['overall_status'],
             "clamav_result": scan_result['clamav_result'],
             "virustotal_result": scan_result['virustotal_result'],
@@ -209,9 +208,9 @@ async def upload_file(token: str, file: UploadFile = File(...)):
         
         warning = None
         if scan_result['overall_status'] == 'suspicious':
-            warning = "ファイルは疑わしいと判定されましたが、アップロードは許可されました"
+            warning = "File was flagged as suspicious but upload was allowed"
         elif scan_result['virustotal_result'] == 'unknown':
-            warning = "VirusTotalでの確認はできませんでしたが、ClamAVで安全と判定されました"
+            warning = "VirusTotal verification not available, but ClamAV marked file as safe"
         
         return JSONResponse({
             "success": True,
@@ -229,7 +228,7 @@ async def upload_file(token: str, file: UploadFile = File(...)):
         raise
     except Exception as e:
         logger.error(f"Upload error: {e}")
-        raise HTTPException(500, f"アップロード中にエラーが発生しました: {str(e)}")
+        raise HTTPException(500, f"Error occurred during upload: {str(e)}")
 
 @router.get("/file/{token}/{file_id}")
 async def file_info_page(token: str, file_id: str, request: Request):
@@ -240,14 +239,14 @@ async def file_info_page(token: str, file_id: str, request: Request):
         if not session or file_id not in session["files"]:
             return templates.TemplateResponse("error.html", {
                 "request": request,
-                "error": "ファイルが見つかりません"
+                "error": "File not found"
             })
         
         file_info = await redis_db.get_file(session["session_id"], file_id)
         if not file_info:
             return templates.TemplateResponse("error.html", {
                 "request": request,
-                "error": "ファイル情報が見つかりません"
+                "error": "File information not found"
             })
         
         scan_status = await scan_service.get_scan_status(file_id)
@@ -280,7 +279,7 @@ async def file_info_page(token: str, file_id: str, request: Request):
             "file_id": file_id,
             "file_info": file_info,
             "size_str": size_str,
-            "uploaded_at": file_info.get('uploaded_at_jst', file_info.get('uploaded_at', 'Unknown')),
+            "uploaded_at": file_info.get('uploaded_at_local', file_info.get('uploaded_at', 'Unknown')),
             "virus_scan_status": file_info.get('virus_scan', 'unknown'),
             "clamav_status": file_info.get('clamav_result', 'unknown'),
             "virustotal_status": file_info.get('virustotal_result', 'unknown'),
@@ -298,7 +297,7 @@ async def file_info_page(token: str, file_id: str, request: Request):
         logger.error(f"Error displaying file info: {e}")
         return templates.TemplateResponse("error.html", {
             "request": request,
-            "error": "ファイル情報の取得に失敗しました"
+            "error": "Failed to retrieve file information"
         })
 
 @router.get("/api/file/{token}/{file_id}/status")
@@ -308,11 +307,11 @@ async def get_file_status(token: str, file_id: str):
         
         session = await redis_db.get_session(token)
         if not session or file_id not in session["files"]:
-            raise HTTPException(404, "ファイルが見つかりません")
+            raise HTTPException(404, "File not found")
         
         file_info = await redis_db.get_file(session["session_id"], file_id)
         if not file_info:
-            raise HTTPException(404, "ファイル情報が見つかりません")
+            raise HTTPException(404, "File information not found")
         
         scan_status = await scan_service.get_scan_status(file_id)
         
@@ -328,7 +327,7 @@ async def get_file_status(token: str, file_id: str):
         raise
     except Exception as e:
         logger.error(f"Error getting file status: {e}")
-        raise HTTPException(500, "ステータス取得に失敗しました")
+        raise HTTPException(500, "Failed to retrieve status")
 
 @router.get("/download/{token}/{file_id}")
 async def download_file(token: str, file_id: str):
@@ -336,28 +335,28 @@ async def download_file(token: str, file_id: str):
         redis_db, minio, _ = get_services()
         
         if minio is None:
-            raise HTTPException(503, "ストレージサービスが利用できません")
+            raise HTTPException(503, "Storage service is unavailable")
         
         session = await redis_db.get_session(token)
         if not session or file_id not in session["files"]:
-            raise HTTPException(404, "ファイルが見つかりません")
+            raise HTTPException(404, "File not found")
         
         file_info = await redis_db.get_file(session["session_id"], file_id)
         if not file_info:
-            raise HTTPException(404, "ファイル情報が見つかりません")
+            raise HTTPException(404, "File information not found")
         
         if file_info.get("virus_scan") == "infected" or file_info.get("clamav_result") == "infected":
-            raise HTTPException(403, "ウイルスが検出されたためダウンロードできません")
+            raise HTTPException(403, "Download blocked: virus detected")
         
         if file_info.get("virus_scan") == "pending" and not Config.ALLOW_PENDING_DOWNLOAD:
-            raise HTTPException(403, "セキュリティスキャン中です。完了までお待ちください")
+            raise HTTPException(403, "Security scan in progress. Please wait for completion")
         
         if file_info.get("virus_scan") == "suspicious":
             logger.warning(f"Suspicious file downloaded: {file_info['original_name']} by session {token}")
         
         file_stream = await minio.get_file_stream(file_info["minio_path"])
         if not file_stream:
-            raise HTTPException(404, "ファイルが見つかりません")
+            raise HTTPException(404, "File not found")
         
         logger.info(f"File downloaded: {file_info['original_name']} from session {token}")
         
@@ -385,7 +384,7 @@ async def download_file(token: str, file_id: str):
         raise
     except Exception as e:
         logger.error(f"Download error: {e}")
-        raise HTTPException(500, "ダウンロード中にエラーが発生しました")
+        raise HTTPException(500, "Error occurred during download")
 
 @router.get("/api/scan/stats")
 async def get_scan_statistics():
@@ -395,7 +394,7 @@ async def get_scan_statistics():
         return JSONResponse(stats)
     except Exception as e:
         logger.error(f"Error getting statistics: {e}")
-        raise HTTPException(500, "統計情報の取得に失敗しました")
+        raise HTTPException(500, "Failed to retrieve statistics")
 
 @router.get("/api/health")
 async def health():

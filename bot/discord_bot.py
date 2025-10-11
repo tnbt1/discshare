@@ -4,6 +4,7 @@ from discord.ext import commands
 import aiohttp
 import logging
 from config import Config
+from messages import get_message
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +32,11 @@ class FileCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @app_commands.command(name='upload', description='ファイルアップロード用のURLを生成します')
+    @app_commands.command(name='upload', description='Generate file upload URL')
     async def upload(self, interaction: discord.Interaction):
         if not any(role.name == Config.REQUIRED_ROLE for role in interaction.user.roles):
             await interaction.response.send_message(
-                "❌ このコマンドを実行する権限がありません",
+                get_message('discord.error.no_permission'),
                 ephemeral=True
             )
             return
@@ -57,47 +58,47 @@ class FileCommands(commands.Cog):
                     if resp.status == 200:
                         result = await resp.json()
                         upload_url = f"{Config.SERVICE_URL}/upload/{result['token']}"
-                        
+
                         embed = discord.Embed(
-                            title="📁 アップロードURL生成完了",
+                            title=get_message('discord.upload.title'),
                             color=discord.Color.green(),
-                            description=f"[**ここをクリックしてアップロード**]({upload_url})"
+                            description=f"[{get_message('discord.upload.click_here')}]({upload_url})"
                         )
                         embed.add_field(
-                            name="🔗 URL（コピー用）",
+                            name=get_message('discord.upload.url_label'),
                             value=f"`{upload_url}`",
                             inline=False
                         )
                         embed.add_field(
-                            name="⏰ 有効期限",
-                            value=f"{Config.URL_EXPIRY_DAYS}日間",
+                            name=get_message('discord.upload.expiry'),
+                            value=get_message('discord.upload.expiry_days', days=Config.URL_EXPIRY_DAYS),
                             inline=True
                         )
                         embed.add_field(
-                            name="📦 最大サイズ",
+                            name=get_message('discord.upload.max_size'),
                             value="5GB",
                             inline=True
                         )
                         embed.add_field(
-                            name="対応ファイル",
-                            value="PDF, DOCX, XLSX, ZIP, JPG, PNG, MP4, AVI, MOV, MKV, WEBM, TXT, CSV, JSON, XML",
+                            name=get_message('discord.upload.supported_files'),
+                            value=get_message('discord.upload.supported_formats'),
                             inline=False
                         )
-                        embed.set_footer(text="URLは有効期限まで何度でも使用可能です")
-                        
+                        embed.set_footer(text=get_message('discord.upload.footer'))
+
                         await interaction.followup.send(embed=embed)
                     else:
-                        await interaction.followup.send("❌ URL生成に失敗しました")
+                        await interaction.followup.send(get_message('discord.error.generation_failed'))
                         
         except Exception as e:
             logger.error(f"Error generating URL: {e}")
-            await interaction.followup.send("❌ サービスに接続できません")
+            await interaction.followup.send(get_message('discord.error.service_unavailable'))
     
-    @app_commands.command(name='generate', description='uploadコマンドと同じ（エイリアス）')
+    @app_commands.command(name='generate', description='Alias for /upload command')
     async def generate(self, interaction: discord.Interaction):
         if not any(role.name == Config.REQUIRED_ROLE for role in interaction.user.roles):
             await interaction.response.send_message(
-                "❌ このコマンドを実行する権限がありません",
+                get_message('discord.error.no_permission'),
                 ephemeral=True
             )
             return
@@ -119,61 +120,61 @@ class FileCommands(commands.Cog):
                     if resp.status == 200:
                         result = await resp.json()
                         upload_url = f"{Config.SERVICE_URL}/upload/{result['token']}"
-                        
+
                         embed = discord.Embed(
-                            title="📁 アップロードURL生成完了",
+                            title=get_message('discord.upload.title'),
                             color=discord.Color.green(),
-                            description=f"[**ここをクリックしてアップロード**]({upload_url})"
+                            description=f"[{get_message('discord.upload.click_here')}]({upload_url})"
                         )
                         embed.add_field(
-                            name="🔗 URL（コピー用）",
+                            name=get_message('discord.upload.url_label'),
                             value=f"`{upload_url}`",
                             inline=False
                         )
                         embed.add_field(
-                            name="⏰ 有効期限",
-                            value=f"{Config.URL_EXPIRY_DAYS}日間",
+                            name=get_message('discord.upload.expiry'),
+                            value=get_message('discord.upload.expiry_days', days=Config.URL_EXPIRY_DAYS),
                             inline=True
                         )
                         embed.add_field(
-                            name="📦 最大サイズ",
+                            name=get_message('discord.upload.max_size'),
                             value="5GB",
                             inline=True
                         )
                         embed.add_field(
-                            name="対応ファイル",
-                            value="PDF, DOCX, XLSX, ZIP, JPG, PNG, MP4, AVI, MOV, MKV, WEBM, TXT, CSV, JSON, XML",
+                            name=get_message('discord.upload.supported_files'),
+                            value=get_message('discord.upload.supported_formats'),
                             inline=False
                         )
-                        embed.set_footer(text="URLは有効期限まで何度でも使用可能です")
-                        
+                        embed.set_footer(text=get_message('discord.upload.footer'))
+
                         await interaction.followup.send(embed=embed)
                     else:
-                        await interaction.followup.send("❌ URL生成に失敗しました")
+                        await interaction.followup.send(get_message('discord.error.generation_failed'))
                         
         except Exception as e:
             logger.error(f"Error generating URL: {e}")
-            await interaction.followup.send("❌ サービスに接続できません")
+            await interaction.followup.send(get_message('discord.error.service_unavailable'))
     
-    @app_commands.command(name='help', description='ファイル共有サービスの使い方を表示')
+    @app_commands.command(name='help', description='Show file sharing service guide')
     async def help_command(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="📖 ファイル共有サービスの使い方",
+            title=get_message('discord.help.title'),
             color=discord.Color.blue()
         )
         embed.add_field(
-            name="/upload",
-            value="アップロード用URLを生成します",
+            name=get_message('discord.help.upload_command'),
+            value=get_message('discord.help.upload_desc'),
             inline=False
         )
         embed.add_field(
-            name="必要な権限",
-            value=f"`{Config.REQUIRED_ROLE}` ロール",
+            name=get_message('discord.help.required_role'),
+            value=f"`{Config.REQUIRED_ROLE}` role",
             inline=False
         )
         embed.add_field(
-            name="対応ファイル",
-            value="PDF, DOCX, XLSX, ZIP, JPG, PNG, MP4, AVI, MOV, MKV, WEBM, TXT, CSV, JSON, XML",
+            name=get_message('discord.upload.supported_files'),
+            value=get_message('discord.upload.supported_formats'),
             inline=False
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)

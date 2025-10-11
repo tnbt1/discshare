@@ -4,7 +4,6 @@ import asyncio
 from datetime import datetime
 from typing import Dict, Tuple, Optional, Any
 from pathlib import Path
-import pytz
 
 from services.clamav_scan import ClamAVService
 from services.virus_scan import VirusScan
@@ -18,7 +17,7 @@ class IntegratedScanService:
         self.clamav = ClamAVService()
         self.virustotal = VirusScan()
         self.db = ScanLogDatabase(Config.SCAN_LOG_DB_PATH if hasattr(Config, 'SCAN_LOG_DB_PATH') else "db/scan_logs.db")
-        self.jst = pytz.timezone('Asia/Tokyo')
+        self.configured_tz = Config.get_timezone()
         
     async def scan_file(self, 
                         file_content: bytes, 
@@ -30,7 +29,7 @@ class IntegratedScanService:
             'file_name': file_info['name'],
             'file_size': file_info['size'],
             'file_extension': file_info.get('extension', ''),
-            'upload_time_jst': datetime.now(self.jst).strftime('%Y-%m-%d %H:%M:%S'),
+            'upload_time_local': datetime.now(self.configured_tz).strftime('%Y-%m-%d %H:%M:%S'),
             'clamav_result': 'pending',
             'virustotal_result': 'pending',
             'file_hash': None,
@@ -218,7 +217,7 @@ class IntegratedScanService:
     async def _save_log(self, scan_result: Dict, session_info: Dict):
         try:
             log_data = {
-                'upload_time_jst': scan_result['upload_time_jst'],
+                'upload_time_local': scan_result['upload_time_local'],
                 'file_name': scan_result['file_name'],
                 'file_uuid': scan_result['file_uuid'],
                 'file_extension': scan_result['file_extension'],
